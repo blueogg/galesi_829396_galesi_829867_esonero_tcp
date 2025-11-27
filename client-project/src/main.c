@@ -27,6 +27,11 @@
 
 #define NO_ERROR 0
 
+void errorhandler(char* errormessage){
+
+	printf("%s\n", errormessage);
+}
+
 void clearwinsock() {
 #if defined WIN32
 	WSACleanup();
@@ -42,8 +47,6 @@ int main(int argc, char *argv[]) {
 	char* luogo = NULL;
 	long port = 0;
 	char* indirizzo = NULL;
-	int i = 0;
-
 
 	for(int i = 1; i < argc; i++){
 
@@ -83,10 +86,10 @@ int main(int argc, char *argv[]) {
 	my_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr = indirizzo == NULL ? inet_addr("127.0.0.1") : inet_addr(indirizzo);
+	server_addr.sin_addr.S_un.S_addr = indirizzo == NULL ? inet_addr("127.0.0.1") : inet_addr(indirizzo);
 	server_addr.sin_port = port == 0 ? htons(SERVER_PORT) : htons(port);
 
-	if(connect(my_socket, (struct sockaddr_in*)&server_addr, sizeof(server_addr) < 0)){
+	if(connect(my_socket, (struct sockaddr*)&server_addr, sizeof(server_addr) < 0)){
 
 		errorhandler("Connessione non andata a buon fine!");
 		closesocket(my_socket);
