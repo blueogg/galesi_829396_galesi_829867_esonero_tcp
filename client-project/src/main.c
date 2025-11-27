@@ -6,7 +6,7 @@
  * This file contains the boilerplate code for a TCP client
  * portable across Windows, Linux and macOS.
  */
-#define MAXCITYLENGHT 10
+#define MAXREQLENGHT 10
 #define MAXADDRLENGHT 16
 #if defined WIN32
 #include <winsock.h>
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
 	//OTTIENE VALORE PARAMETRI
 
-	char* luogo = NULL;
+	char* richiesta = NULL;
 	long port = 0;
 	char* indirizzo = NULL;
 
@@ -61,8 +61,8 @@ int main(int argc, char *argv[]) {
 		}
 
 		if(strcmp(argv[i], "-t") == 0){
-			luogo = malloc(MAXCITYLENGHT * sizeof(char));
-			strcpy(luogo, argv[i  + 1]);
+			richiesta = malloc(MAXREQLENGHT * sizeof(char));
+			strcpy(richiesta, argv[i  + 1]);
 		}
 
 	}
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
 	if (result != NO_ERROR) {
-		printf("Error at WSAStartup()\n");
+		printf("Errore su WSAStartup()");
 		return 0;
 	}
 #endif
@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
 	int my_socket;
 	memset(&my_socket, 0, sizeof(my_socket));
 	my_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if(my_socket < 0) errorhandler("Creaziones socket fallita");
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.S_un.S_addr = indirizzo == NULL ? inet_addr("127.0.0.1") : inet_addr(indirizzo);
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]) {
 
 	if(connect(my_socket, (struct sockaddr*)&server_addr, sizeof(server_addr) < 0)){
 
-		errorhandler("Connessione non andata a buon fine!");
+		errorhandler("connect() fallito");
 		closesocket(my_socket);
 		clearwinsock();
 		return -1;

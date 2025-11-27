@@ -26,6 +26,10 @@
 
 #define NO_ERROR 0
 
+void errorhandler(char* errormessage){
+
+	printf("%s\n", errormessage);
+}
 void clearwinsock() {
 #if defined WIN32
 	WSACleanup();
@@ -41,24 +45,31 @@ int main(int argc, char *argv[]) {
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
 	if (result != NO_ERROR) {
-		printf("Error at WSAStartup()\n");
+		printf("Error at WSAStartup()");
 		return 0;
 	}
 #endif
 
 	int my_socket;
+	my_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (my_socket < 0) {
+	errorhandler("Creazione socket fallita");
+	clearwinsock();
+	return -1;
+	}
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(SERVER_PORT);
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	memset(&server_addr, 0, sizeof(server_addr));
 
-	// TODO: Create socket
-	// my_socket = socket(...);
+	if (bind(my_socket, (struct sockaddr*) &server_addr, sizeof(server_addr)) < 0) {
+	errorhandler("bind() failed");
+	closesocket(my_socket);
+	clearwinsock();
+	return -1;
+	}
 
-	// TODO: Configure server address
-	// struct sockaddr_in server_addr;
-	// server_addr.sin_family = AF_INET;
-	// server_addr.sin_port = htons(SERVER_PORT);
-	// server_addr.sin_addr.s_addr = INADDR_ANY;
-
-	// TODO: Bind socket
-	// bind(...);
 
 	// TODO: Set socket to listen
 	// listen(...);
@@ -75,4 +86,6 @@ int main(int argc, char *argv[]) {
 	closesocket(my_socket);
 	clearwinsock();
 	return 0;
-} // main end
+	}
+
+// main end
