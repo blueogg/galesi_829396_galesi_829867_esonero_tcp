@@ -88,8 +88,11 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-		puts("test");
-		// TODO: Implement server logic here (recv, process, send)
+		weather_request_t req;
+		recv(client_socket, &req, getreqsize(), 0);
+		processReq(&req, client_addres);
+
+
 
 		closesocket(client_socket);
 	}

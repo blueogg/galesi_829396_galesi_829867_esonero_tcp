@@ -29,7 +29,7 @@ weather_request_t* requestCreate(char richiesta[]){
 
 	weather_request_t* req = malloc(sizeof(weather_request_t));
 	req->type = richiesta[0];
-	char nome[64];
+	char nome[64] = {};
 	int i = 2;
 	int j = 0;
 	while(richiesta[i] != '\0'){

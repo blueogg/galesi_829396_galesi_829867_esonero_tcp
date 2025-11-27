@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 	weather_request_t* req = requestCreate(_richiesta);
 	send(my_socket, req, getreqsize(), 0);
 	weather_response_t* res;
-	recv(my_socket, res, getressize(), 0);
+	//recv(my_socket, res, getressize(), 0);
 
 
 

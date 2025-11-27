@@ -26,7 +26,28 @@ typedef struct {
     float value;          // Weather data value
 } weather_response_t;
 
+size_t getreqsize(){
+	return sizeof(weather_request_t);
+}
 
+size_t getressize(){
+	return sizeof(weather_request_t);
+}
+
+void processReq(weather_request_t* req, struct sockaddr_in client){
+
+	printf("%s %c ", "Richiesta", req->type);
+	int i = 0;
+	while( req->city[i] != '\0'){
+
+		printf("%c", req->city[i] );
+		i++;
+
+	}
+
+	printf(" dal client ip %s\n", inet_ntoa(client.sin_addr));
+
+}
 
 
 #endif /* PROTOCOL_H_ */
