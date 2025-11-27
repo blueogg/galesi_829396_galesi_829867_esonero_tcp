@@ -6,7 +6,8 @@
  * This file contains the boilerplate code for a TCP client
  * portable across Windows, Linux and macOS.
  */
-
+#define MAXCITYLENGHT 10
+#define MAXADDRLENGHT 16
 #if defined WIN32
 #include <winsock.h>
 #else
@@ -32,9 +33,40 @@ void clearwinsock() {
 #endif
 }
 
+
+
 int main(int argc, char *argv[]) {
 
-	// TODO: Implement client logic
+	//OTTIENE VALORE PARAMETRI
+
+	char* luogo = NULL;
+	long port = 0;
+	char* indirizzo = NULL;
+	int i = 0;
+
+
+	for(int i = 1; i < argc; i++){
+
+		if(strcmp(argv[i], "-s") == 0){
+			indirizzo = malloc(MAXADDRLENGHT * sizeof(char));
+			strcpy(indirizzo, argv[i + 1]);
+
+		}
+		if(strcmp(argv[i], "-p") == 0){
+		port = strtol(argv[i + 1], NULL, 10);
+
+		}
+
+		if(strcmp(argv[i], "-t") == 0){
+			luogo = malloc(MAXCITYLENGHT * sizeof(char));
+			strcpy(luogo, argv[i  + 1]);
+		}
+
+	}
+
+
+
+
 
 #if defined WIN32
 	// Initialize Winsock
@@ -47,16 +79,24 @@ int main(int argc, char *argv[]) {
 #endif
 
 	int my_socket;
+	memset(&my_socket, 0, sizeof(my_socket));
+	my_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr = indirizzo == NULL ? inet_addr("127.0.0.1") : inet_addr(indirizzo);
+	server_addr.sin_port = port == 0 ? htons(SERVER_PORT) : htons(port);
 
-	// TODO: Create socket
-	// my_socket = socket(...);
+	if(connect(my_socket, (struct sockaddr_in*)&server_addr, sizeof(server_addr) < 0)){
 
-	// TODO: Configure server address
-	// struct sockaddr_in server_addr;
-	// ...
+		errorhandler("Connessione non andata a buon fine!");
+		closesocket(my_socket);
+		clearwinsock();
+		return -1;
 
-	// TODO: Connect to server
-	// connect(...);
+	}
+
+
+
 
 	// TODO: Implement communication logic
 	// send(...);
