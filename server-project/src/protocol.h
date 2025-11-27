@@ -8,46 +8,30 @@
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
-// Shared application parameters
-#define SERVER_PORT 27015  // Server port (change if needed)
-#define BUFFER_SIZE 512    // Buffer size for messages
-#define QUEUE_SIZE 5       // Size of pending connections queue
+#define SERVER_PORT 27015
+#define BUFFER_SIZE 512
+#define QUEUE_SIZE 5
 
 
 typedef struct {
-    char type;        // Weather data type: 't', 'h', 'w', 'p'
-    char city[64];    // City name (null-terminated string)
+    char type;
+    char city[64];
 } weather_request_t;
 
 
 typedef struct {
-    unsigned int status;  // Response status code
-    char type;            // Echo of request type
-    float value;          // Weather data value
+    unsigned int status;
+    char type;
+    float value;
 } weather_response_t;
 
-size_t getreqsize(){
-	return sizeof(weather_request_t);
-}
+size_t getreqsize(void);
+size_t getressize(void);
+weather_response_t processReq(weather_request_t* req, struct sockaddr_in client);
 
-size_t getressize(){
-	return sizeof(weather_request_t);
-}
-
-void processReq(weather_request_t* req, struct sockaddr_in client){
-
-	printf("%s %c ", "Richiesta", req->type);
-	int i = 0;
-	while( req->city[i] != '\0'){
-
-		printf("%c", req->city[i] );
-		i++;
-
-	}
-
-	printf(" dal client ip %s\n", inet_ntoa(client.sin_addr));
-
-}
-
+float get_temperature(void);
+float get_humidity(void);
+float get_wind(void);
+float get_pressure(void);
 
 #endif /* PROTOCOL_H_ */

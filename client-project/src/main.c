@@ -28,7 +28,6 @@
 #define NO_ERROR 0
 
 void errorhandler(char* errormessage){
-
 	printf("%s\n", errormessage);
 }
 
@@ -38,7 +37,43 @@ void clearwinsock() {
 #endif
 }
 
-struct weather_request_t;
+void printarray(const char a[]){
+int i = 0;
+	while(a[i] != '\0'){
+		if(i == 0) { printf(". %c", toupper(a[i])); i++;
+		}else {
+		printf("%c", tolower(a[i]));
+		i++;
+		}
+	}
+}
+
+weather_request_t* requestCreate(const char richiesta[]){
+	weather_request_t* req = (weather_request_t*)malloc(sizeof(weather_request_t));
+
+	req->type = richiesta[0];
+
+	int i  = 2;
+	int j = 0;
+	char nome[64] = {};
+	while(richiesta[i] != '\0'){
+		nome[j] = richiesta[i];
+		i++;
+		j++;
+	}
+	strcpy(req->city, nome);
+
+	return req;
+}
+
+size_t getreqsize(void){
+	return sizeof(weather_request_t);
+}
+
+size_t getressize(void){
+	return sizeof(weather_response_t);
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -47,6 +82,7 @@ int main(int argc, char *argv[]) {
 	char* indirizzo = NULL;
 	int check = 0;
 	int counterR = 0;
+
 	for(int i = 1; i < argc; i++){
 
 
@@ -77,6 +113,8 @@ int main(int argc, char *argv[]) {
 
 	}
 
+
+	if(port < 0 || port > 65535) errorhandler("Porta non valida");
 	if(check != 0){
 		check = inet_addr(indirizzo);
 		if(check == INADDR_NONE){
@@ -84,18 +122,11 @@ int main(int argc, char *argv[]) {
 		return -1;
 		}
 	}
-
-
 	if(counterR == 0) { errorhandler("Il parametro -r e' obbligatorio"); return -1;}
 
 	char _richiesta[MAXREQLENGHT];
 	strcpy(_richiesta, richiesta);
-	if(_richiesta[0] != 't' && _richiesta[0] != 'h' && _richiesta[0] != 'w' && _richiesta[0] != 'p' )
-	{
-		errorhandler("Richiesta non valida");
-        // Aggiungere l'uscita qui per rispettare i requisiti
-        return -1;
-	}
+
 
 
 #if defined WIN32
@@ -109,7 +140,7 @@ int main(int argc, char *argv[]) {
 
 	int my_socket;
 	my_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if(my_socket < 0) errorhandler("Creaziones socket fallita");
+	if(my_socket < 0) {errorhandler("Creaziones socket fallita"); clearwinsock(); return -1;}
 
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
@@ -118,30 +149,78 @@ int main(int argc, char *argv[]) {
     server_addr.sin_addr.s_addr = inet_addr(ip_to_use);
 
 	server_addr.sin_port = port == 0 ? htons(SERVER_PORT) : htons(port);
-	puts("a");
 
 	if(connect(my_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-
 		errorhandler("connect() fallito");
 		closesocket(my_socket);
 		clearwinsock();
 		return -1;
-
 	}
 
 	weather_request_t* req = requestCreate(_richiesta);
+    weather_response_t res;
+
 	send(my_socket, req, getreqsize(), 0);
-	weather_response_t* res;
-	//recv(my_socket, res, getressize(), 0);
+	recv(my_socket, &res, getressize(), 0);
+	printf("Ricevuto risultato dal server ip %s", inet_ntoa(server_addr.sin_addr));
+	if(res.status == 0){
+
+		int i  = 2;
+		int j = 0;
+		char nome[64];
+		while(richiesta[i] != '\0'){
+			nome[j] = richiesta[i];
+			i++;
+			j++;
+		}
+
+		switch(res.type){
+
+		case 't':
+			printarray(nome);
+			printf(": Temperatura = %.1f°C\n", res.value);
+				break;
+
+		case 'h':
+			printarray(nome);
+			printf(": Umidità = %.1f%c\n", res.value, 37);
+
+			break;
+		case 'w':
+			printarray(nome);
+			printf(": Vento = %.1fkm/h\n", res.value);
+
+			break;
+		case 'p':
+			printarray(nome);
+			printf(": Pressione = %.1fhPa\n", res.value);
+
+			break;
+		}
+		}
+		if(res.status == 1){
+
+			errorhandler(". Città non disponibile");
+				return -1;
+		}
+
+		if(res.status == 2){
+			errorhandler(". Richiesta non valida");
+
+		}
+
+		// TODO: Close socket
+		// closesocket(my_socket);
+
+		clearwinsock();
+		return 0;
+
+
+	}
 
 
 
 
-	// TODO: Close socket
-	// closesocket(my_socket);
 
-	printf("Client terminated.\n");
 
-	clearwinsock();
-	return 0;
-}
+
